@@ -1,4 +1,4 @@
-
+/* Pilk zawierajacy klase wektorow, mas oraz symulacji mas z predkoscia oraz pod wplywem grawitacji. Zawiera takze polaczenie ze sprezyna*/
 #include <math.h>
 
 // Klasa wektorów	---> Obiekt reprezentujacy wektor albo punkt w 3-wymiarowej przestrzeni

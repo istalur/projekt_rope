@@ -7,8 +7,8 @@
 
 
 
-FILES = main.cpp lesson40.cpp
-OBJ = main.o lesson40.o
+FILES = main.cpp lina.cpp
+OBJ = main.o lina.o
 
 
 #------------------------------------------------------------------------------

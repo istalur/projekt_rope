@@ -1,4 +1,4 @@
-
+/*symulacja liny w oknie OpenGl*/
 #include "main.h"												
 
 extern S_AppStatus AppStatus;									
@@ -8,7 +8,7 @@ extern S_AppStatus AppStatus;
 RopeSimulation* ropeSimulation = new RopeSimulation(
 													80,						//80 czasteczek
 													0.05f,					// kazda o wadze 50 gra
-													10000.0f,				// stala sprezystosci
+													1000.0f,				// stala sprezystosci
 													0.05f,					// dlugosc sprezynki
 													0.2f,					// tarcie wew sprezynki
 													Vector3D(0, -9.81f, 0), // grawitacja
@@ -24,7 +24,7 @@ bool InitGL(SDL_Surface *S)										// inicjacja open gl
 {
 	ropeSimulation->getMass(ropeSimulation->numOfMasses - 1)->vel.z = 10.0f;
 
-	glClearColor (0.0f, 0.0f, 0.0f, 0.5f);								// czarne tlo
+	glClearColor (120.0f, 120.0f, 0.0f, 255.0f);								// zolte tlo
 	glClearDepth (1.0f);													// glebokosc
 	glDepthFunc (GL_LEQUAL);											
 	glEnable (GL_DEPTH_TEST);											
@@ -154,7 +154,7 @@ void Draw(void)													// kod rysujacy
 	
 
 	// rysowanie liny
-	glColor3ub(255, 255, 0);												// zolty
+	glColor3ub(255, 0, 0);												// zolty
 	for (int index = 0; index < ropeSimulation->numOfMasses - 1; ++index)
 	{
 		Mass* mass1 = ropeSimulation->getMass(index);

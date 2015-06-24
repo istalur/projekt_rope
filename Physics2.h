@@ -1,5 +1,5 @@
 
-
+/*Plik zawierajacy zachowanie sprezyny oraz liny zbudowanej z punktow polaczonych sprezynkami */
 #include "Physics1.h"									//Physics1.h jest wymagane dla Physics2.h aby wykonac symulacje, naglowek zawiera klase wektor do ktorej odwolujemy sie tutaj
 
 class Spring											//objekt reprezentujacy sprezyne z wewnetrznym tarciem wiazacym dwie masy. 
@@ -114,11 +114,11 @@ public:
 		}
 	}
 
-	void release()										//release() is overriden because we have springs to delete
+	void release()										
 	{
-		Simulation::release();							//Have the super class release itself
+		Simulation::release();							
 
-		for (int index = 0; index < numOfMasses - 1; ++index)		//to delete all springs, start a loop
+		for (int index = 0; index < numOfMasses - 1; ++index)		//usuwanie sprezynek
 		{
 			delete(springs[index]);
 			springs[index] = NULL;
