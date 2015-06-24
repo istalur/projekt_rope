@@ -1,167 +1,142 @@
 
+#include "main.h"												
+
+extern S_AppStatus AppStatus;									
 
 
 
-/**************************************************************************
-
-  File: Lesson40.cpp
-
-  Based on Jeff Molofee's Basecode Example
-
-  Modified by Erkin Tunca for nehe.gamedev.net
-
-  Ported to SDL under Linux by Gianni Cestari
-
-**************************************************************************/
-
-// Includes
-#include "main.h"												// We're Including theHeader Where Defs And Prototypes
-
-extern S_AppStatus AppStatus;									// We're Using This Struct As A Repository For The Application State (Visible, Focus, ecc)
-
-
-/*
-  class RopeSimulation is derived from class Simulation (see Physics1.h). It simulates a rope with
-  point-like particles binded with springs. The springs have inner friction and normal length. One tip of
-  the rope is stabilized at a point in space called "Vector3D ropeConnectionPos". This point can be
-  moved externally by a method "void setRopeConnectionVel(Vector3D ropeConnectionVel)". RopeSimulation
-  creates air friction and a planer surface (or ground) with a normal in +y direction. RopeSimulation
-  implements the force applied by this surface. In the code, the surface is refered as "ground".
-*/
 RopeSimulation* ropeSimulation = new RopeSimulation(
-													80,						// 80 Particles (Masses)
-													0.05f,					// Each Particle Has A Weight Of 50 Grams
-													10000.0f,				// springConstant In The Rope
-													0.05f,					// Normal Length Of Springs In The Rope
-													0.2f,					// Spring Inner Friction Constant
-													Vector3D(0, -9.81f, 0), // Gravitational Acceleration
-													0.02f,					// Air Friction Constant
-													100.0f,					// Ground Repel Constant
-													0.2f,					// Ground Slide Friction Constant
-													2.0f,					// Ground Absoption Constant
-													-1.5f);					// Height Of Ground
+													80,						//80 czasteczek
+													0.05f,					// kazda o wadze 50 gra
+													10000.0f,				// stala sprezystosci
+													0.05f,					// dlugosc sprezynki
+													0.2f,					// tarcie wew sprezynki
+													Vector3D(0, -9.81f, 0), // grawitacja
+													0.02f,					// oporpowietrza
+													100.0f,					// sila odpychania podloza
+													0.2f,					// tarcie z podlozem
+													2.0f,					// absorpcja
+													-1.5f);					// polozenie
 
 
 // Code
-bool InitGL(SDL_Surface *S)										// Any OpenGL Initialization Code Goes Here
+bool InitGL(SDL_Surface *S)										// inicjacja open gl
 {
 	ropeSimulation->getMass(ropeSimulation->numOfMasses - 1)->vel.z = 10.0f;
 
-	glClearColor (0.0f, 0.0f, 0.0f, 0.5f);								// Black Background
-	glClearDepth (1.0f);													// Depth Buffer Setup
-	glDepthFunc (GL_LEQUAL);											// The Type Of Depth Testing
-	glEnable (GL_DEPTH_TEST);											// Enable Depth Testing
-	glShadeModel (GL_SMOOTH);											// Select Smooth Shading
-	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					// Set Perspective Calculations To Most Accurate
+	glClearColor (0.0f, 0.0f, 0.0f, 0.5f);								// czarne tlo
+	glClearDepth (1.0f);													// glebokosc
+	glDepthFunc (GL_LEQUAL);											
+	glEnable (GL_DEPTH_TEST);											
+	glShadeModel (GL_SMOOTH);											
+	glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);					
 
-	return true;												// Return TRUE (Initialization Successful)
+	return true;												
 }
 
-bool Initialize(void)											// Any Application & User Initialization Code Goes Here
+bool Initialize(void)											
 {
-	AppStatus.Visible	= true;								// At The Beginning, Our App Is Visible
-	AppStatus.MouseFocus	= true;								// And Have Both Mouse
-	AppStatus.KeyboardFocus = true;								// And Input Focus
+	AppStatus.Visible	= true;									
+	AppStatus.MouseFocus	= true;								
+	AppStatus.KeyboardFocus = true;								
 
-	return true;												// Return TRUE (Initialization Successful)
+	return true;												
 }
 
 
-void Deinitialize(void)											// Any User Deinitialization Goes Here
+void Deinitialize(void)											
 {
-	ropeSimulation->release();												// Release The ropeSimulation
-	delete(ropeSimulation);													// Delete The ropeSimulation
+	ropeSimulation->release();									
+	delete(ropeSimulation);										
 	ropeSimulation = NULL;
 
-	return;														// We Have Nothing To Deinit Now
+	return;														
 }
 
-void Update(Uint32 milliseconds, Uint8 *Keys)					// Perform Motion Updates Here
+void Update(Uint32 milliseconds, Uint8 *Keys)					
 {
-	if(Keys)													// If We're Sent A Key Event With The Update
+	if(Keys)													// obsluga przyciskow
 	{
-		if(Keys[SDLK_ESCAPE])									// And If The Key Pressed Was ESC
+		if(Keys[SDLK_ESCAPE])									// esc
 		{
-			TerminateApplication();								// Terminate The Application
+			TerminateApplication();								// konic
 		}
 
-		if(Keys[SDLK_F1])										// If The Key Pressed Was F1
+		if(Keys[SDLK_F1])										// F1
 		{
-			ToggleFullscreen();									// Use SDL Function To Toggle Fullscreen Mode (But Not In Windows :) )
+			ToggleFullscreen();									// fullscreen
 		}
 
-		Vector3D ropeConnectionVel;						// Create A Temporary Vector3D
+		Vector3D ropeConnectionVel;						// tymczasowy wektor 3d
 
-		if(Keys[SDLK_UP])										// If The Key Pressed Was Up Arrow
+		if(Keys[SDLK_UP])								//obsluga 	strzalek	
 		{
-			ropeConnectionVel.z -= 3.0f;					// Add Velocity In +Z Direction
+			ropeConnectionVel.z -= 3.0f;					
 		}
 
-		if(Keys[SDLK_DOWN])										// If The Key Pressed Was Down Arrow
+		if(Keys[SDLK_DOWN])										
 		{
-			ropeConnectionVel.z += 3.0f;					// Add Velocity In -Z Direction
+			ropeConnectionVel.z += 3.0f;					
 		}
 
-		if(Keys[SDLK_LEFT])										// If The Key Pressed Was Left Arrow
+		if(Keys[SDLK_LEFT])										
 		{
-			ropeConnectionVel.x -= 3.0f;						// Add Velocity In -X Direction
+			ropeConnectionVel.x -= 3.0f;						
 		}
 
-		if(Keys[SDLK_RIGHT])										// If The Key Pressed Was Right Arrow
+		if(Keys[SDLK_RIGHT])										
 		{
-			ropeConnectionVel.x += 3.0f;						// Add Velocity In +X Direction
+			ropeConnectionVel.x += 3.0f;						
 		}
 
-		if(Keys[SDLK_HOME])										// If The Key Pressed Was Right Arrow
+		if(Keys[SDLK_HOME])										
 		{
-			ropeConnectionVel.y += 3.0f;						// Add Velocity In +Y Direction
+			ropeConnectionVel.y += 3.0f;						
 		}
 
-		if(Keys[SDLK_END])										// If The Key Pressed Was Right Arrow
+		if(Keys[SDLK_END])										
 		{
-			ropeConnectionVel.y -= 3.0f;						// Add Velocity In -Y Direction
+			ropeConnectionVel.y -= 3.0f;						
 		}
-		ropeSimulation->setRopeConnectionVel(ropeConnectionVel);		// Set The Obtained ropeConnectionVel In The Simulation
+		ropeSimulation->setRopeConnectionVel(ropeConnectionVel);		
 
-		float dt = milliseconds / 1000.0f;										// Let's Convert Milliseconds To Seconds
+		float dt = milliseconds / 1000.0f;										
 
-	float maxPossible_dt = 0.002f;											// Maximum Possible dt Is 0.002 Seconds
-																			// This Is Needed To Prevent Pass Over Of A Non-Precise dt Value
+	float maxPossible_dt = 0.002f;											
+																			// interwal
 
-  	int numOfIterations = (int)(dt / maxPossible_dt) + 1;					// Calculate Number Of Iterations To Be Made At This Update Depending On maxPossible_dt And dt
-	if (numOfIterations != 0)												// Avoid Division By Zero
-		dt = dt / numOfIterations;											// dt Should Be Updated According To numOfIterations
+  	int numOfIterations = (int)(dt / maxPossible_dt) + 1;					
+	if (numOfIterations != 0)												
+		dt = dt / numOfIterations;											
 
-	for (int a = 0; a < numOfIterations; ++a)								// We Need To Iterate Simulations "numOfIterations" Times
+	for (int a = 0; a < numOfIterations; ++a)								
 		ropeSimulation->operate(dt);
 	}
 
-	return;														// We Always Make Functions Return
+	return;														
 }
 
-void Draw(void)													// Our Drawing Code
+void Draw(void)													// kod rysujacy
 {
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity ();														// Reset The Modelview Matrix
-
-	// Position Camera 40 Meters Up In Z-Direction.
-	// Set The Up Vector In Y-Direction So That +X Directs To Right And +Y Directs To Up On The Window.
+	glLoadIdentity ();														// Reset 
+	
 	gluLookAt(0, 0, 4, 0, 0, 0, 0, 1, 0);
 
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);					// Clear Screen And Depth Buffer
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);					//czyszczenie
 
-	// Draw A Plane To Represent The Ground (Different Colors To Create A Fade)
+	
 	glBegin(GL_QUADS);
-		glColor3ub(0, 0, 255);												// Set Color To Light Blue
+		glColor3ub(0, 0, 255);												// kolor jasno niebieski
 		glVertex3f(20, ropeSimulation->groundHeight, 20);
 		glVertex3f(-20, ropeSimulation->groundHeight, 20);
-		glColor3ub(0, 0, 0);												// Set Color To Black
+		glColor3ub(0, 0, 0);												// czarny
 		glVertex3f(-20, ropeSimulation->groundHeight, -20);
 		glVertex3f(20, ropeSimulation->groundHeight, -20);
 	glEnd();
 
 	// Start Drawing Shadow Of The Rope
-	glColor3ub(0, 0, 0);													// Set Color To Black
+	glColor3ub(0, 0, 0);													
 	for (int index = 0; index < ropeSimulation->numOfMasses - 1; ++index)
 	{
 		Mass* mass1 = ropeSimulation->getMass(index);
@@ -172,14 +147,14 @@ void Draw(void)													// Our Drawing Code
 
 		glLineWidth(2);
 		glBegin(GL_LINES);
-			glVertex3f(pos1->x, ropeSimulation->groundHeight, pos1->z);		// Draw Shadow At groundHeight
-			glVertex3f(pos2->x, ropeSimulation->groundHeight, pos2->z);		// Draw Shadow At groundHeight
+			glVertex3f(pos1->x, ropeSimulation->groundHeight, pos1->z);		// cienie
+			glVertex3f(pos2->x, ropeSimulation->groundHeight, pos2->z);		
 		glEnd();
 	}
-	// Drawing Shadow Ends Here.
+	
 
-	// Start Drawing The Rope.
-	glColor3ub(255, 255, 0);												// Set Color To Yellow
+	// rysowanie liny
+	glColor3ub(255, 255, 0);												// zolty
 	for (int index = 0; index < ropeSimulation->numOfMasses - 1; ++index)
 	{
 		Mass* mass1 = ropeSimulation->getMass(index);
@@ -194,9 +169,9 @@ void Draw(void)													// Our Drawing Code
 			glVertex3f(pos2->x, pos2->y, pos2->z);
 		glEnd();
 	}
-	// Drawing The Rope Ends Here.
+	
 
-	glFlush ();													// Flush The GL Rendering Pipeline
+	glFlush ();													
 
-	return;														// We're Always Making Functions Return
+	return;														
 }

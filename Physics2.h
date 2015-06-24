@@ -1,101 +1,90 @@
-/**************************************************************************
 
-  File: Physics2.h  
 
-  Prepared by Erkin Tunca for nehe.gamedev.net
+#include "Physics1.h"									//Physics1.h jest wymagane dla Physics2.h aby wykonac symulacje, naglowek zawiera klase wektor do ktorej odwolujemy sie tutaj
 
-**************************************************************************/
-
-#include "Physics1.h"									//Physics1.h is a must for Physics2.h simulations
-
-class Spring											//An object to represent a spring with inner friction binding two masses. The spring
-														//has a normal length (the length that the spring does not exert any force)
-{
+class Spring											//objekt reprezentujacy sprezyne z wewnetrznym tarciem wiazacym dwie masy. 
+{														//sprezyna posiada prostopadla dlugosc czyli taka na ktora sprezyna nie wywiera zadnej sily
 public:
-	Mass* mass1;										//The first mass at one tip of the spring
-	Mass* mass2;										//The second mass at the other tip of the spring
+	Mass* mass1;										//pierwsza masa na jednym koncu sprezyny
+	Mass* mass2;										//druga masa na drugin koncu sprezyny
 
-	float springConstant;								//A constant to represent the stiffness of the spring
-	float springLength;									//The length that the spring does not exert any force
-	float frictionConstant;								//A constant to be used for the inner friction of the spring
+	float springConstant;								//stala odpowiadajaca za sztywnosc sprezyny
+	float springLength;									//dlugosc na ktora sprezyna nie wywiera zadnych sil
+	float frictionConstant;								//stala odpowiadajaca za tarcie wewnetrzne sprezyny
 
 	Spring(Mass* mass1, Mass* mass2, 
-		float springConstant, float springLength, float frictionConstant)		//Constructor
+		float springConstant, float springLength, float frictionConstant)		//konstruktor
 	{
-		this->springConstant = springConstant;									//set the springConstant
-		this->springLength = springLength;										//set the springLength
-		this->frictionConstant = frictionConstant;								//set the frictionConstant
+		this->springConstant = springConstant;									//ustawienie sztywnosci 
+		this->springLength = springLength;										//ustawienie dlugosci
+		this->frictionConstant = frictionConstant;								//ustawienie wspolczynnika tarcia wew
 
-		this->mass1 = mass1;													//set mass1
-		this->mass2 = mass2;													//set mass2
+		this->mass1 = mass1;													//ustawienie masy na jednym koncu
+		this->mass2 = mass2;													//ustawienie masy na drugim koncu
 	}
 
-	void solve()																	//solve() method: the method where forces can be applied
+	void solve()																 // metoda aplikujaca sily zew
 	{
-		Vector3D springVector = mass1->pos - mass2->pos;							//vector between the two masses
+		Vector3D springVector = mass1->pos - mass2->pos;							//wektor pomiedzy masami
 		
-		float r = springVector.length();											//distance between the two masses
+		float r = springVector.length();											//dligosc pomiedzy masami
 
-		Vector3D force;																//force initially has a zero value
+		Vector3D force;																//wartosc poczatkowa sily rowna sie zero
 
-		if (r != 0)																	//to avoid a division by zero check if r is zero
-			force += (springVector / r) * (r - springLength) * (-springConstant);	//the spring force is added to the force
+		if (r != 0)																	//sprawdzenie czy promien nie jest rowny zero
+			force += (springVector / r) * (r - springLength) * (-springConstant);	//sila sprezystosci jest dodawana do sily calkowitej 
 
-		force += -(mass1->vel - mass2->vel) * frictionConstant;						//the friction force is added to the force
-																					//with this addition we obtain the net force of the spring
+		force += -(mass1->vel - mass2->vel) * frictionConstant;						//sila tarcia rozwniez jest dodawana
+																					// uzyskujemy przy tym sile naprezen sprezyny 
 
-		mass1->applyForce(force);													//force is applied to mass1
-		mass2->applyForce(-force);													//the opposite of force is applied to mass2
+		mass1->applyForce(force);													//fsila ta przykladana jest do masy pierwszej zas do masy drugiej sila rozwna co do wartosci lecz przeciwna
+		mass2->applyForce(-force);													
 	}
 
 };
 
 /*
-  class RopeSimulation is derived from class Simulation (see Physics1.h). It simulates a rope with 
-  point-like particles binded with springs. The springs have inner friction and normal length. One tip of 
-  the rope is stabilized at a point in space called "Vector3D ropeConnectionPos". This point can be
-  moved externally by a method "void setRopeConnectionVel(Vector3D ropeConnectionVel)". RopeSimulation 
-  creates air friction and a planer surface (or ground) with a normal in +y direction. RopeSimulation 
-  implements the force applied by this surface. In the code, the surface is refered as "ground".
+  klasa RopeSimulation pochodzi z klasy Simulation (physics1.h). symuluje zachowanie liny zbudowanej z punktow polaczonych sprezynkami
+  sprezynki maja swoje tarcie wew i normalna dlugosc. jeden koniec liny jest stabilny i zawieszony w przestrzeni "Vector3D ropeConnectionPos"
+  punkt moze byc poryszany po calej przestrzeni przez wykorzystanie metody "void setRopeConnectionVel(Vector3D ropeConnectionVel)".
+  RopeSimulation tworzy opor powietrza i podloze prostopadle do liny. RopeSimulation implementuje sile wykonana przez podloze. w kodzie podloze jest nazwane jako "ground"
 */
-class RopeSimulation : public Simulation				//An object to simulate a rope interacting with a planer surface and air
+class RopeSimulation : public Simulation				//klasa stworzona do zasymulowania oddzialywania miedzy lina a podlozem i powierzem
 {
 public:
-	Spring** springs;									//Springs binding the masses (there shall be [numOfMasses - 1] of them)
+	Spring** springs;									//sprezynki wiazace masy, powinno byc ich o jeden mniej od calkowitej liczby mas
+	Vector3D gravitation;								//sila grawitacji, dotychy wszystkich mas
 
-	Vector3D gravitation;								//gravitational acceleration (gravity will be applied to all masses)
+	Vector3D ropeConnectionPos;							//punkt w przestrzeni aby ustawic pozycje pierwszej masy o indeksie 0 
+														
 
-	Vector3D ropeConnectionPos;							//A point in space that is used to set the position of the 
-														//first mass in the system (mass with index 0)
+	Vector3D ropeConnectionVel;							//zmienna odpowiadajaca za ruch liny
 
-	Vector3D ropeConnectionVel;							//a variable to move the ropeConnectionPos (by this, we can swing the rope)
-
-	float groundRepulsionConstant;						//a constant to represent how much the ground shall repel the masses
+	float groundRepulsionConstant;						//stala mowiaca ile o podloze bedzie hamowac mase
 	
-	float groundFrictionConstant;						//a constant of friction applied to masses by the ground
-														//(used for the sliding of rope on the ground)
+	float groundFrictionConstant;						//tarcie miedzy masa a podlozem
+														
 	
-	float groundAbsorptionConstant;						//a constant of absorption friction applied to masses by the ground
-														//(used for vertical collisions of the rope with the ground)
+	float groundAbsorptionConstant;						//zaabsorbowane tarcie przez masy
 	
-	float groundHeight;									//a value to represent the y position value of the ground
-														//(the ground is a planer surface facing +y direction)
+	float groundHeight;									//pozycja na podlozu
+														
 
-	float airFrictionConstant;							//a constant of air friction applied to masses
+	float airFrictionConstant;							//stala oporu powietrza
 
-	RopeSimulation(										//a long long constructor with 11 parameters starts here
-		int numOfMasses,								//1. the number of masses
-		float m,										//2. weight of each mass
-		float springConstant,							//3. how stiff the springs are
-		float springLength,								//4. the length that a spring does not exert any force
-		float springFrictionConstant,					//5. inner friction constant of spring
-		Vector3D gravitation,							//6. gravitational acceleration
-		float airFrictionConstant,						//7. air friction constant
-		float groundRepulsionConstant,					//8. ground repulsion constant
-		float groundFrictionConstant,					//9. ground friction constant
-		float groundAbsorptionConstant,					//10. ground absorption constant
-		float groundHeight								//11. height of the ground (y position)
-		) : Simulation(numOfMasses, m)					//The super class creates masses with weights m of each
+	RopeSimulation(									
+		int numOfMasses,								
+		float m,										
+		float springConstant,							
+		float springLength,								
+		float springFrictionConstant,					
+		Vector3D gravitation,							
+		float airFrictionConstant,						
+		float groundRepulsionConstant,					
+		float groundFrictionConstant,					
+		float groundAbsorptionConstant,					
+		float groundHeight							
+		) : Simulation(numOfMasses, m)					
 	{
 		this->gravitation = gravitation;
 		
@@ -106,19 +95,20 @@ public:
 		this->groundAbsorptionConstant = groundAbsorptionConstant;
 		this->groundHeight = groundHeight;
 
-		for (int index = 0; index < numOfMasses; ++index)			//To set the initial positions of masses loop with for(;;)
+		for (int index = 0; index < numOfMasses; ++index)			//pozycja poczatwkowa mas
 		{
-			masses[index]->pos.x = index * springLength;		//Set x position of masses[a] with springLength distance to its neighbor
-			masses[index]->pos.y = 0;						//Set y position as 0 so that it stand horizontal with respect to the ground
-			masses[index]->pos.z = 0;						//Set z position as 0 so that it looks simple
+			masses[index]->pos.x = index * springLength;		
+			masses[index]->pos.y = 0;						
+			masses[index]->pos.z = 0;						
 		}
 
-		springs = new Spring*[numOfMasses - 1];			//create [numOfMasses - 1] pointers for springs
-														//([numOfMasses - 1] springs are necessary for numOfMasses)
+		springs = new Spring*[numOfMasses - 1];			
+														
 
-		for (int index = 0; index < numOfMasses - 1; ++index)			//to create each spring, start a loop
+		for (int index = 0; index < numOfMasses - 1; ++index)			
 		{
-			//Create the spring with index "a" by the mass with index "a" and another mass with index "a + 1".
+			
+			//tworzenie sprezynek i mas o indeksach "a" i kolejnej masy o indeksie a+1
 			springs[index] = new Spring(masses[index], masses[index + 1],
 				springConstant, springLength, springFrictionConstant);
 		}
@@ -138,49 +128,43 @@ public:
 		springs = NULL;
 	}
 
-	void solve()										//solve() is overriden because we have forces to be applied
+	void solve()										 //przeciążenie w celu zaaplikowania sił
 	{
-		for (int index = 0; index < numOfMasses - 1; ++index)		//apply force of all springs
+		for (int index = 0; index < numOfMasses - 1; ++index)		
 		{
-			springs[index]->solve();						//Spring with index "a" should apply its force
+			springs[index]->solve();						//aplikowanie sił indeksowanych
 		}
 
-		for (int index = 0; index < numOfMasses; ++index)				//Start a loop to apply forces which are common for all masses
+		for (int index = 0; index < numOfMasses; ++index)				//pętla aplikująca wspólne siły do mas
 		{
-			masses[index]->applyForce(gravitation * masses[index]->m);				//The gravitational force
+			masses[index]->applyForce(gravitation * masses[index]->m);				
 
-			masses[index]->applyForce(-masses[index]->vel * airFrictionConstant);	//The air friction
+			masses[index]->applyForce(-masses[index]->vel * airFrictionConstant);	
 
-			if (masses[index]->pos.y < groundHeight)		//Forces from the ground are applied if a mass collides with the ground
+			if (masses[index]->pos.y < groundHeight)		//opór podłoża jest tez dodawany jezeli zachodzi z nim kontakt
 			{
-				Vector3D v;								//A temporary Vector3D
+				Vector3D v;								
 
-				v = masses[index]->vel;						//get the velocity
-				v.y = 0;								//omit the velocity component in y direction
+				v = masses[index]->vel;						
+				v.y = 0;								//pomijanie predkosci  w kierunku y
 
-				//The velocity in y direction is omited because we will apply a friction force to create
-				//a sliding effect. Sliding is parallel to the ground. Velocity in y direction will be used
-				//in the absorption effect.
-				masses[index]->applyForce(-v * groundFrictionConstant);		//ground friction force is applied
+				
+				masses[index]->applyForce(-v * groundFrictionConstant);		
 
-				v = masses[index]->vel;						//get the velocity
-				v.x = 0;								//omit the x and z components of the velocity
-				v.z = 0;								//we will use v in the absorption effect
+				v = masses[index]->vel;						
+				v.x = 0;								
+				v.z = 0;								
 
-				//above, we obtained a velocity which is vertical to the ground and it will be used in
-				//the absorption force
+				
 
-				if (v.y < 0)							//let's absorb energy only when a mass collides towards the ground
-					masses[index]->applyForce(-v * groundAbsorptionConstant);		//the absorption force is applied
+				if (v.y < 0)							//apsorbcja energii masy w kontakcie z podlozem
+					masses[index]->applyForce(-v * groundAbsorptionConstant);		//aplikowanie
 
-				//The ground shall repel a mass like a spring.
-				//By "Vector3D(0, groundRepulsionConstant, 0)" we create a vector in the plane normal direction
-				//with a magnitude of groundRepulsionConstant.
-				//By (groundHeight - masses[a]->pos.y) we repel a mass as much as it crashes into the ground.
+				
 				Vector3D force = Vector3D(0, groundRepulsionConstant, 0) *
 					(groundHeight - masses[index]->pos.y);
 
-				masses[index]->applyForce(force);			//The ground repulsion force is applied
+				masses[index]->applyForce(force);			
 			}
 
 		}
@@ -188,24 +172,24 @@ public:
 
 	}
 
-	void simulate(float dt)								//simulate(float dt) is overriden because we want to simulate
-														//the motion of the ropeConnectionPos
-	{
-		Simulation::simulate(dt);						//the super class shall simulate the masses
+	void simulate(float dt)								
+														
+	{													//symulacja ruchu
+		Simulation::simulate(dt);						
 
-		ropeConnectionPos += ropeConnectionVel * dt;	//iterate the positon of ropeConnectionPos
+		ropeConnectionPos += ropeConnectionVel * dt;	//iteracje pozycji
 
-		if (ropeConnectionPos.y < groundHeight)			//ropeConnectionPos shall not go under the ground
+		if (ropeConnectionPos.y < groundHeight)			
 		{
 			ropeConnectionPos.y = groundHeight;
 			ropeConnectionVel.y = 0;
 		}
 
-		masses[0]->pos = ropeConnectionPos;				//mass with index "0" shall position at ropeConnectionPos
-		masses[0]->vel = ropeConnectionVel;				//the mass's velocity is set to be equal to ropeConnectionVel
+		masses[0]->pos = ropeConnectionPos;				
+		masses[0]->vel = ropeConnectionVel;				
 	}
 
-	void setRopeConnectionVel(Vector3D ropeConnectionVel)	//the method to set ropeConnectionVel
+	void setRopeConnectionVel(Vector3D ropeConnectionVel)	
 	{
 		this->ropeConnectionVel = ropeConnectionVel;
 	}

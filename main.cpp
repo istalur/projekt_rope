@@ -1,200 +1,177 @@
 
-/***********************************************
-*                                              *
-*    Jeff Molofee's Revised OpenGL Basecode    *
-*  Huge Thanks To Maxwell Sayles & Peter Puck  *
-*    SDL Port under Linux By Gianni Cestari    *
-*            http://nehe.gamedev.net           *
-*                     2003                     *
-*                                              *
-***********************************************/
-
-/* NOTES:	This is a portable version of the great NeHeGL Framework  made using
-			the awesome SDL Library by Sam Lantinga (http://www.libsdl.org).
-
-			The ASK_FULLSCREEN flag only work with MSVC presently.
-			The F1 key to toggle fullscreen only work with Linux and BeOS, since
-			SDL only support the function under those two OSes.
-
-			Fabio 'SnowDruid' Franchello (snowdruid@tiscalinet.it)
-*/
-
-// Includes
-#include "main.h"															// Header File For The NeHeGL Basecode
-
-// Globals
-bool isProgramLooping;														// We're Using This One To Know If The Program Must Go On In The Main Loop
-S_AppStatus AppStatus;														// The Struct That Holds The Runtime Data Of The Application
 
 
-// Code
-bool InitTimers(Uint32 *C)													// This Is Used To Init All The Timers In Our Application
+#include "main.h"															
+
+
+bool isProgramLooping;														
+S_AppStatus AppStatus;														
+
+
+
+bool InitTimers(Uint32 *C)													// Wywolanie wszystkich timerow w prormaie
 {
-	*C = SDL_GetTicks();													// Hold The Value Of SDL_GetTicks At The Program Init
+	*C = SDL_GetTicks();													// przechowywanie wartosci timera
 
-	return true;															// Return TRUE (Initialization Successful)
+	return true;															
 }
 
-void TerminateApplication(void)												// Terminate The Application
+void TerminateApplication(void)												// Wyjscie z aplikacji
 {
-	static SDL_Event Q;														// We're Sending A SDL_QUIT Event
+	static SDL_Event Q;														// wyslanie zapytania wyjscia do kolejki SDL
+	Q.type = SDL_QUIT;													
 
-	Q.type = SDL_QUIT;														// To The SDL Event Queue
-
-	if(SDL_PushEvent(&Q) == -1)												// Try Send The Event
+	if(SDL_PushEvent(&Q) == -1)												// proba wyslania zapytania
 	{
-		printf("SDL_QUIT event can't be pushed: %s\n", SDL_GetError() );						// And Eventually Report Errors
-		exit(1);															// And Exit
+		printf("SDL_QUIT zdarzenie jest wykonane: %s\n", SDL_GetError() );						// ewenttualny blad
+		exit(1);															// wyjscie
 	}
 
-	return;																	// We're Always Making Our Funtions Return
 }
 
-void ToggleFullscreen(void)													// Toggle Fullscreen/Windowed (Works On Linux/BeOS Only)
+void ToggleFullscreen(void)													// Ustaw pelny ekran
 {
-	SDL_Surface *S;															// A Surface To Point The Screen
+	SDL_Surface *S;															// powierzchnia punktow ekranu
 
-	S = SDL_GetVideoSurface();												// Get The Video Surface
+	S = SDL_GetVideoSurface();												// pobierz powierzchnie video
 
-	if(!S || (SDL_WM_ToggleFullScreen(S)!=1))								// If SDL_GetVideoSurface Failed, Or We Can't Toggle To Fullscreen
+	if(!S || (SDL_WM_ToggleFullScreen(S)!=1))								// raport o bledzie
 	{
-		printf("Unable to toggle fullscreen: %s\n", SDL_GetError() );			// We're Reporting The Error, But We're Not Exiting
+		printf("Niemozliwe jest wejscie w tryb pelnoekranowy: %s\n", SDL_GetError() );			
 	}
 	
-	return;																	// Always Return
 }
 
-void ReshapeGL(int width, int height)										// Reshape The Window When It's Moved Or Resized
+void ReshapeGL(int width, int height)										// przerysuj okno jesli jest ruszane badz przeskalowywane
 {
-	glViewport(0,0,(GLsizei)(width),(GLsizei)(height));						// Reset The Current Viewport
-	glMatrixMode(GL_PROJECTION);											// Select The Projection Matrix
-	glLoadIdentity();														// Reset The Projection Matrix */
+	glViewport(0,0,(GLsizei)(width),(GLsizei)(height));						// Resetuj obecny obraz
+	glMatrixMode(GL_PROJECTION);											// wybierz maciez projekcji
+	glLoadIdentity();														// przerysuj macierz projekcji
 
-	gluPerspective(45.0f,(GLfloat)(width)/(GLfloat)(height),1.0f,100.0f);	// Calculate The Aspect Ratio Of The Window
-	glMatrixMode(GL_MODELVIEW);												// Select The Modelview Matrix
-	glLoadIdentity();														// Reset The Modelview Matrix
+	gluPerspective(45.0f,(GLfloat)(width)/(GLfloat)(height),1.0f,100.0f);	// Oblicz nowe wartosci okna
+	glMatrixMode(GL_MODELVIEW);												// wybierz Modelview Matrix
+	glLoadIdentity();														// przerysuj The Modelview Matrix
 
-	return;																	// Always Return, We're Standard :)
 }
 
-bool CreateWindowGL (SDL_Surface *S, int W, int H, int B, Uint32 F)			// This Code Creates Our OpenGL Window
+bool CreateWindowGL (SDL_Surface *S, int W, int H, int B, Uint32 F)			// Stworz okno OpenGL
 {
-	if(!(S = SDL_SetVideoMode(W, H, B, F)))									// We're Using SDL_SetVideoMode To Create The Window
+	if(!(S = SDL_SetVideoMode(W, H, B, F)))									// użycie biblioteki SDL
 	{
-		return false;														// If It Fails, We're Returning False
+		return false;														// w przypadku bledu zwroc false
 	}
 
-	ReshapeGL(SCREEN_W, SCREEN_H);											// We're Calling Reshape As The Window Is Created
+	ReshapeGL(SCREEN_W, SCREEN_H);											// wywolanie funkcji reshape
 
-	return true;															// Return TRUE (Initialization Successful)
+	return true;															
 }
 
-int main(int argc, char **argv)												// Our Main Funcion!
+int main(int argc, char **argv)												
 {
-	SDL_Surface *Screen;													// The Screen
-	SDL_Event	E;															// And Event Used In The Polling Process
-	Uint8		*Keys;														// A Pointer To An Array That Will Contain The Keyboard Snapshot
-	Uint32		Vflags;														// Our Video Flags
-	Uint32		TickCount;													// Used For The Tick Counter
-	Uint32		LastCount;													// Used For The Tick Counter
+	SDL_Surface *Screen;													// ekran
+	SDL_Event	E;															
+	Uint8		*Keys;														// tablica dla klawiatury
+	Uint32		Vflags;														// flagi
+	Uint32		TickCount;													// zliczenie tykniec
+	Uint32		LastCount;													
 	
-	Screen = NULL;															// We're Standard, We're Initializing Every Variable We Have
-	Keys = NULL;															// We Compilers Won't Complain
-	Vflags = SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_OPENGLBLIT;					// We Want A Hardware Surface, Double Buffering Feature And Special OpenGLBlit Mode
-																			// So We Can Even Blit 2D Graphics In our OpenGL Scene
-	if(SDL_Init(SDL_INIT_VIDEO)<0)											// Init The SDL Library, The VIDEO Subsystem
+	Screen = NULL;															// inicjalizacja zmiennych
+	Keys = NULL;															
+	Vflags = SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_OPENGLBLIT;					// Hardware Surface, Double Buffering Feature, Special OpenGLBlit
+																			
+	if(SDL_Init(SDL_INIT_VIDEO)<0)											// inicjalizacja biblioteki SDL - The VIDEO Subsystem
 	{
-		printf("Unable to open SDL: %s\n", SDL_GetError() );					// If SDL Can't Be Initialized
-		exit(1);															// Get Out Of Here. Sorry.
+		printf("SDL nie dziala: %s\n", SDL_GetError() );					// zabezpieczenie
+		exit(1);															
 	}
 
-	atexit(SDL_Quit);														// SDL's Been init, Now We're Making Sure Thet SDL_Quit Will Be Called In Case of exit()
+	atexit(SDL_Quit);														// zdarzenie wyjscia
 
-#if defined FULLSCREEN_ASK													// We're Choosing Compile Time If We Want The Application To Ask For Fullscreen (WIN32 Only)
+#if defined FULLSCREEN_ASK													// zapytanie o pełny ekran
 
-	if(MessageBox(HWND_DESKTOP, "Would you like fullscreen mode?",				// With a MessageBox Call
-		"Fullscreen?", MB_YESNO|MB_ICONQUESTION) == IDYES)
+	if(MessageBox(HWND_DESKTOP, "chcesz otworzyc w trybie pelnoekranowym?",				
+		"pelnoekran?", MB_YESNO|MB_ICONQUESTION) == IDYES)
 	{
-		Vflags|=SDL_FULLSCREEN;												// If Yes, Add The Fullscreen Flag To Our Init
+		Vflags|=SDL_FULLSCREEN;												
 	}
 
-#elif defined FULLSCREEN													// Now, We Can Decide To Always Launch Out Application Fullscreen
+#elif defined FULLSCREEN													
 
-	Vflags|=SDL_FULLSCREEN;													// If So, We Always Need The Fullscreen Video Init Flag
+	Vflags|=SDL_FULLSCREEN;													
 
-#endif																		// If Neither FULLSCREEN_ASK nor FULLSCREEN Were Specified At Compile Time, We're
-																			// Launching Our Application in Windowed Mode
+#endif																		
+																			
 
-	if(!CreateWindowGL(Screen, SCREEN_W, SCREEN_H, SCREEN_BPP, Vflags))		// Our Video Flags Are Set, We're Creating The Window
+	if(!CreateWindowGL(Screen, SCREEN_W, SCREEN_H, SCREEN_BPP, Vflags))		// flagi tworzenia okna GL
 	{
-		printf("Unable to open screen surface: %s\n", SDL_GetError() );		// If Something's Gone Wrong, Report
-		exit(1);															// And Exit
+		printf("Blad okna: %s\n", SDL_GetError() );		
+		exit(1);															
 	}
 
-	SDL_WM_SetCaption(APP_NAME, NULL);										// We're Setting The Window Caption
+	SDL_WM_SetCaption(APP_NAME, NULL);										
 
-	if(!InitTimers(&LastCount))												// We Call The Timers Init Function
+	if(!InitTimers(&LastCount))												// wywowalnie timerow
 	{
-		printf("Can't init the timers: %s\n", SDL_GetError() );				// If It Can't Init, Report
-		exit(1);															// And Exit
+		printf("Blad timera: %s\n", SDL_GetError() );				
+		exit(1);															
 	}
 
-	if(!InitGL(Screen))														// We're Calling The OpenGL Init Function
+	if(!InitGL(Screen))														// wywolanie GL
 	{
-		printf("Can't init GL: %s\n", SDL_GetError() );						// If Something's Gone Wrong, Report
-		exit(1);															// And Guess What? Exit
+		printf("Blad GL: %s\n", SDL_GetError() );						
+		exit(1);															
 	}
 
-	if(!Initialize())														// Now We're Initting The Application
+	if(!Initialize())														//wywoalanie aplikacji
 	{
-		printf("App init failed: %s\n", SDL_GetError() );						// Blah Blah Blah, Blah
-		exit(1);															// And Blah
+		printf("Blad aplikacji: %s\n", SDL_GetError() );						
+		exit(1);															
 	}
 
-	isProgramLooping = true;												// Ok, Make Our Program Loop
+	isProgramLooping = true;												// petla programowa
 
-	while(isProgramLooping)													// And While It's looping
+	while(isProgramLooping)													
 	{
-		if(SDL_PollEvent(&E))												// We're Fetching The First Event Of The Queue
+		if(SDL_PollEvent(&E))												// pierwsze zdarzenie kolejki
 		{
-			switch(E.type)													// And Processing It
+			switch(E.type)													
 			{
 				
-			case SDL_QUIT:													// It's a QUIT Event?
+			case SDL_QUIT:													// zdarzenie wyjscia
 				{
-					isProgramLooping = false;								// If Yes, Make The Program Stop Looping
-					break;													// And Break
+					isProgramLooping = false;								
+					break;													
 				}
 
-			case SDL_VIDEORESIZE:											// It's a RESIZE Event?
+			case SDL_VIDEORESIZE:											// Zdarzenie skalowania
 				{
-					ReshapeGL(E.resize.w, E.resize.h);						// If Yes, Recalculate The OpenGL Scene Data For The New Window
-					break;													// And Break
+					ReshapeGL(E.resize.w, E.resize.h);						// przeskaluj scene i okno
+					break;													
 				}
 
-			case SDL_ACTIVEEVENT:											// It's an ACTIVE Event?
+			case SDL_ACTIVEEVENT:											// zdarzenie aktywnosci
 				{
-					if(E.active.state & SDL_APPACTIVE)						// Activity Level Changed? (IE: Iconified?)
+					if(E.active.state & SDL_APPACTIVE)						
 					{
-						if(E.active.gain)									// Activity's Been Gained?
+						if(E.active.gain)									
 						{
-							AppStatus.Visible = true;						// If Yes, Set AppStatus.Visible
+							AppStatus.Visible = true;						
 						}
-						else												// Otherwhise
+						else												
 						{
-							AppStatus.Visible = false;						// Reset AppStatus.Visible
+							AppStatus.Visible = false;						
 						}
 					}
 					
-					if(E.active.state & SDL_APPMOUSEFOCUS)					// The Mouse Cursor Has Left/Entered The Window Space?
+					if(E.active.state & SDL_APPMOUSEFOCUS)					// zdarzenie myszki w pelnym ekrania. 
 					{
-						if(E.active.gain)									// Entered?
+						if(E.active.gain)									
 						{
-							AppStatus.MouseFocus = true;						// Report It Setting AppStatus.MouseFocus
+							AppStatus.MouseFocus = true;						
 						}
-						else												// Otherwhise
+						else												
 						{
-							AppStatus.MouseFocus = false;					// The Cursor Has Left, Reset AppStatus.MouseFocus
+							AppStatus.MouseFocus = false;					
 						}
 					}
 
@@ -210,37 +187,37 @@ int main(int argc, char **argv)												// Our Main Funcion!
 						}
 					}
 					
-					break;													// And Break
+					break;													
 				}
 
-			case SDL_KEYDOWN:												// Someone Has Pressed A Key?
+			case SDL_KEYDOWN:												// zdarzenie guzika F1
 				{
-					Keys = SDL_GetKeyState(NULL);							// Is It's So, Take A SnapShot Of The Keyboard For The Update() Func To Use
-					break;													// And Break;
+					Keys = SDL_GetKeyState(NULL);							// wcisniecie guzika i wyslanie zawiadomienia
+					break;													
 				}
 
 			}
 		}
-		else																// No Events To Poll? (SDL_PollEvent()==0?)
+		else																// brak zdarzen w kolejce
 		{
-			if(!AppStatus.Visible)											// If The Application Is Not Visible
+			if(!AppStatus.Visible)											// jesli aplikacja nie jest widoczna
 			{
-				SDL_WaitEvent(NULL);										// Leave The CPU Alone, Don't Waste Time, Simply Wait For An Event
+				SDL_WaitEvent(NULL);										// wstrzymaj program
 			}
-			else															// Otherwhise
+			else															
 			{
-				TickCount = SDL_GetTicks();									// Get Present Ticks
-				Update(TickCount-LastCount, Keys);							// And Update The Motions And Data
-				LastCount = TickCount;										// Save The Present Tick Probing
-				Draw();														// Do The Drawings!
-				SDL_GL_SwapBuffers();										// And Swap The Buffers (We're Double-Buffering, Remember?)
+				TickCount = SDL_GetTicks();									// pobierz obecne tykniecie
+				Update(TickCount-LastCount, Keys);							// uaktualnij ruch i dane
+				LastCount = TickCount;										// zapisz obecne tykniecie
+				Draw();														// rysuj
+				SDL_GL_SwapBuffers();										// podmien bufory
 			}
 		}
 	}
 
-	Deinitialize();															// The Program Stopped Looping, We Have To Close And Go Home
-																			// First, The Application Data Deinitialization
-	exit(0);																// And Finally We're Out, exit() Will Call SDL_Quit
+	Deinitialize();															// koniec dzialania programu
+																			// usuniecie obiektow
+	exit(0);																// zdarzenie wyjscia wysylanie do kolejnki
 
-	return 0;																// We're Standard: The main() Must Return A Value
+	return 0;																
 }
