@@ -118,7 +118,7 @@ public:
 
 };
 
-// class Mass			---> Objekt reprezentujacy mase
+// Klasa odpowiedzialna za nadawanie mas punktom			 Objekt reprezentujacy mase
 class Mass
 {
 public:
@@ -290,7 +290,7 @@ public:
 	{
 		for (int count = 0; count < numOfMasses; ++count)								//dodawanie sily do wszystkich mas
 		{
-			Vector3D springVector = masses[count]->pos - connectionPos;			//find a vector from the position of the mass to the connectionPos znajdz wektor z pozycji masy do punktu styku
+			Vector3D springVector = masses[count]->pos - connectionPos;			//znajdz wektor z pozycji masy do punktu styku
 			masses[count]->applyForce(-springVector * springConstant);			//przyloz sile zgodna ze znana sila sprezystosci
 		}
 	}

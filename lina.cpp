@@ -19,12 +19,12 @@ RopeSimulation* ropeSimulation = new RopeSimulation(
 													-1.5f);					// polozenie
 
 
-// Code
+
 bool InitGL(SDL_Surface *S)										// inicjacja open gl
 {
 	ropeSimulation->getMass(ropeSimulation->numOfMasses - 1)->vel.z = 10.0f;
 
-	glClearColor (120.0f, 120.0f, 0.0f, 255.0f);								// zolte tlo
+	glClearColor (1.0f, 0.5f, 0.0f, 0.5f);								// zolte tlo
 	glClearDepth (1.0f);													// glebokosc
 	glDepthFunc (GL_LEQUAL);											
 	glEnable (GL_DEPTH_TEST);											
@@ -43,7 +43,7 @@ bool Initialize(void)
 	return true;												
 }
 
-
+//destrukccja obiektu liny
 void Deinitialize(void)											
 {
 	ropeSimulation->release();									
@@ -147,14 +147,14 @@ void Draw(void)													// kod rysujacy
 
 		glLineWidth(2);
 		glBegin(GL_LINES);
-			glVertex3f(pos1->x, ropeSimulation->groundHeight, pos1->z);		// cienie
+			glVertex3f(pos1->x, ropeSimulation->groundHeight, pos1->z);		// cien liny
 			glVertex3f(pos2->x, ropeSimulation->groundHeight, pos2->z);		
 		glEnd();
 	}
 	
 
 	// rysowanie liny
-	glColor3ub(255, 0, 0);												// zolty
+	glColor3ub(0, 255, 0);												// zolty
 	for (int index = 0; index < ropeSimulation->numOfMasses - 1; ++index)
 	{
 		Mass* mass1 = ropeSimulation->getMass(index);

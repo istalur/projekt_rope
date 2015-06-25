@@ -14,7 +14,7 @@ OBJ = main.o lina.o
 #------------------------------------------------------------------------------
 # Opcje kompilatora i linkera
 CFLAGS = -Wall -O -DLINUX `sdl-config --cflags`
-LFLAGS = `sdl-config --libs` -L/usr/X11R6/lib -lglut -lGL -lGLU
+LFLAGS = `sdl-config --libs` -L/usr/X11R6/lib  -lGL -lGLU
 
 
 

@@ -9,7 +9,7 @@
 #include <SDL/SDL.h>															
 #include "Physics2.h"
 
-#define APP_NAME	"Projekt LINA"
+#define APP_NAME	"Projekt WONSZ"
 
 #define SCREEN_W	800
 #define SCREEN_H	600

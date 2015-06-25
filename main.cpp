@@ -175,15 +175,15 @@ int main(int argc, char **argv)
 						}
 					}
 
-					if(E.active.state & SDL_APPINPUTFOCUS)					// The Window Has Gained/Lost Input Focus?
+					if(E.active.state & SDL_APPINPUTFOCUS)					// sprawdzenie obslugi klawiatury
 					{
-						if(E.active.gain)									// Gained?
+						if(E.active.gain)									
 						{
-							AppStatus.KeyboardFocus = true;					// Report It Where You Know (You Always Report, You're A Spy, Aren't You?!)
+							AppStatus.KeyboardFocus = true;					
 						}
-						else												// Otherwhise
+						else												
 						{
-							AppStatus.KeyboardFocus = false;				// Reset AppStatus.KeyboardFocus
+							AppStatus.KeyboardFocus = false;				
 						}
 					}
 					
